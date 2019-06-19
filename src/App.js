@@ -1,26 +1,26 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
+import "./App.css";
+import Navbar from "./components/layouts/Navbar";
+import Customers from "./components/Customers";
+import AddForm from "./components/AddForm";
+import { CustomerProvider } from "./store";
+import EditForm from "./components/EditForm";
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+	return (
+		<CustomerProvider>
+			<Router>
+				<Navbar />
+				<div className="container">
+					<Switch>
+						<Route path="/" exact component={Customers} />
+						<Route path="/customer-form" exact component={AddForm} />
+						<Route path="/edit-customer" exact component={EditForm} />
+					</Switch>
+				</div>
+			</Router>
+		</CustomerProvider>
+	);
 }
-
 export default App;
