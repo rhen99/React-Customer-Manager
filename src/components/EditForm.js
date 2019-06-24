@@ -28,7 +28,7 @@ export default function EditForm() {
 						e.preventDefault();
 						dispatch({
 							type: "UPDATE",
-							id: customer.id,
+							token: customer.token,
 							updatedCustomer: customer,
 						});
 						setRedirect(true);

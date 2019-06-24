@@ -1,13 +1,13 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Context } from "../store";
 
 export default function Customers() {
-	const { customers, dispatch, editCustomer } = useContext(Context);
-	const deleteCustomer = id => {
+	const { initialState, dispatch, editCustomer } = useContext(Context);
+	const deleteCustomer = token => {
 		dispatch({
 			type: "DELETE",
-			id: id,
+			token: token,
 		});
 	};
 	return (
@@ -33,8 +33,8 @@ export default function Customers() {
 							</tr>
 						</thead>
 						<tbody>
-							{customers.map(item => (
-								<tr key={item.id}>
+							{initialState.map(item => (
+								<tr key={item.token}>
 									<td>
 										{item.firstName} {item.lastName}
 									</td>
@@ -43,7 +43,7 @@ export default function Customers() {
 									<td>
 										<button
 											className="btn btn-danger"
-											onClick={() => deleteCustomer(item.id)}
+											onClick={() => deleteCustomer(item.token)}
 										>
 											Delete
 										</button>
@@ -63,7 +63,6 @@ export default function Customers() {
 					</table>
 				</div>
 			</div>
-			{console.log(customers)}
 		</>
 	);
 }

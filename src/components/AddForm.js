@@ -1,11 +1,11 @@
 import React, { useState, useContext, useRef } from "react";
 import { Redirect } from "react-router-dom";
-
+import uuid from "uuid";
 import { Context } from "../store";
 
 export default function AddForm() {
 	const [redirect, setRedirect] = useState(false);
-	const { dispatch, customers } = useContext(Context);
+	const { dispatch } = useContext(Context);
 	const firstName = useRef("");
 	const lastName = useRef("");
 	const email = useRef("");
@@ -15,12 +15,15 @@ export default function AddForm() {
 		e.preventDefault();
 		dispatch({
 			type: "ADD",
-			id: customers.length,
-			firstName: firstName.current.value,
-			lastName: lastName.current.value,
-			email: email.current.value,
-			phone: phone.current.value,
+			new: {
+				token: uuid.v4(),
+				firstName: firstName.current.value,
+				lastName: lastName.current.value,
+				email: email.current.value,
+				phone: phone.current.value,
+			},
 		});
+
 		setRedirect(true);
 	};
 	const renderRedirect = redirect === true ? <Redirect to="/" /> : "";

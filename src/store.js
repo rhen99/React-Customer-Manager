@@ -1,32 +1,43 @@
-import React, { useReducer, useState } from "react";
-import { CustomerReducer } from "./reducers";
+import React, { useState, useEffect } from "react";
+import db from "./firebaseInit";
+
 export const Context = React.createContext();
 
 export function CustomerProvider({ children }) {
-	const state = [
-		{
-			id: 0,
-			firstName: "John",
-			lastName: "Doe",
-			email: "jdoe@gmail.com",
-			phone: "555-555-5555",
-		},
-		{
-			id: 1,
-			firstName: "Jane",
-			lastName: "Doe",
-			email: "jdoe@yahoo.com",
-			phone: "444-444-4444",
-		},
-		{
-			id: 2,
-			firstName: "Arhen",
-			lastName: "Santiago",
-			email: "arhen@gmail.com",
-			phone: "333-333-3333",
-		},
-	];
-	const [customers, dispatch] = useReducer(CustomerReducer, state);
+	const state = [];
+	const [initialState, setInitialState] = useState([]);
+	useEffect(() => {
+		db.collection("customers")
+			.orderBy("firstName")
+			.get()
+			.then(qss => {
+				qss.forEach(doc => {
+					const data = {
+						id: doc.id,
+						firstName: doc.data().firstName,
+						lastName: doc.data().lastName,
+						email: doc.data().email,
+						phone: doc.data().phone,
+						token: doc.data().token,
+					};
+					state.push(data);
+					setInitialState([...state]);
+				});
+			});
+	}, []);
+
+	const reducer = (action, state) => {
+		switch (action.type) {
+			case "ADD":
+				return addCustomer(state, action.new);
+			case "DELETE":
+				return deleteCustomer(state, action.token);
+			case "UPDATE":
+				return updateCustomer(state, action);
+			default:
+				return state;
+		}
+	};
 
 	const [currentCustomer, setCurrentCustomer] = useState({
 		id: null,
@@ -35,9 +46,44 @@ export function CustomerProvider({ children }) {
 		email: "",
 		phone: "",
 	});
+
+	const deleteCustomer = (state, token) => {
+		const newState = state.filter(item => item.token !== token);
+		db.collection("customers")
+			.where("token", "==", token)
+			.get()
+			.then(qss => {
+				qss.forEach(doc => {
+					doc.ref.delete();
+				});
+			});
+		return newState;
+	};
+	const addCustomer = (state, newData) => {
+		db.collection("customers")
+			.add(newData)
+			.then(() => {
+				console.log("Added");
+			});
+		return [...state, newData];
+	};
+
+	const updateCustomer = (state, action) => {
+		db.collection("customers")
+			.where("token", "==", action.token)
+			.get()
+			.then(qss => {
+				qss.forEach(doc => {
+					doc.ref.update(action.updatedCustomer);
+				});
+			});
+		return state.map(item =>
+			action.token === item.token ? action.updatedCustomer : item,
+		);
+	};
 	const editCustomer = customer => {
 		setCurrentCustomer({
-			id: customer.id,
+			token: customer.token,
 			firstName: customer.firstName,
 			lastName: customer.lastName,
 			email: customer.email,
@@ -48,10 +94,11 @@ export function CustomerProvider({ children }) {
 	return (
 		<Context.Provider
 			value={{
-				customers,
-				dispatch,
+				setInitialState,
+				initialState,
 				editCustomer,
 				currentCustomer,
+				dispatch: action => setInitialState(state => reducer(action, state)),
 			}}
 		>
 			{children}
